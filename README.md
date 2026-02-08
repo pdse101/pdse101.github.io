@@ -1,1 +1,199 @@
-https://g.co/gemini/share/74bcd623808e
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDS Environmental - Pest Awareness Training</title>
+    <!-- Tailwind CSS for Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX Parsing -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide-react@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+        const { 
+            Shield, MapPin, CheckCircle, AlertTriangle, Box, 
+            ChevronRight, ArrowRight, X, Menu, Construction, 
+            Stethoscope, Truck, Utensils, Search, CheckCircle2, 
+            Target, ClipboardCheck, Home, Building2 
+        } = LucideReact;
+
+        // --- BRANDING COMPONENTS ---
+        const PDSLogo = ({ className = "h-12" }) => (
+            <svg viewBox="0 0 450 120" className={className} xmlns="http://www.w3.org/2000/svg">
+                <g fill="currentColor">
+                    {[...Array(24)].map((_, i) => {
+                        const angle = (i * 360) / 24;
+                        const x = 50 + 35 * Math.cos((angle * Math.PI) / 180);
+                        const y = 60 + 35 * Math.sin((angle * Math.PI) / 180);
+                        return <circle key={i} cx={x} cy={y} r="3" opacity={0.6 + (Math.random() * 0.4)} />;
+                    })}
+                    {[...Array(12)].map((_, i) => {
+                        const angle = (i * 360) / 12;
+                        const x = 50 + 20 * Math.cos((angle * Math.PI) / 180);
+                        const y = 60 + 20 * Math.sin((angle * Math.PI) / 180);
+                        return <circle key={i} cx={x} cy={y} r="2.5" opacity={0.8} />;
+                    })}
+                </g>
+                <rect x="105" y="25" width="2" height="70" fill="currentColor" opacity="0.5" />
+                <text x="115" y="45" fontFamily="sans-serif" fontWeight="700" fontSize="28" letterSpacing="2" fill="currentColor">PDS</text>
+                <text x="115" y="72" fontFamily="sans-serif" fontWeight="600" fontSize="24" letterSpacing="1" fill="currentColor">ENVIRONMENTAL</text>
+                <text x="115" y="96" fontFamily="sans-serif" fontWeight="500" fontSize="22" letterSpacing="1" fill="currentColor">SERVICES</text>
+            </svg>
+        );
+
+        // --- DATA ---
+        const RESIDENTIAL_SOP = {
+            sops: [
+                "Keep pet food in airtight BIN containers overnight.",
+                "Inspect window screens for mesh tears and loose frames.",
+                "Clear gutters of debris and eliminate standing water.",
+                "Seal gaps under kitchen and bathroom sink pipe entries."
+            ]
+        };
+
+        const COMMERCIAL_INDUSTRIES = [
+            { id: 'food', name: 'Food Service', icon: <Utensils />, color: 'bg-orange-500', sops: ["Wipe equipment daily.", "6-inch floor clearance.", "BIN liners for trash.", "Report gaps."] },
+            { id: 'healthcare', name: 'Healthcare', icon: <Stethoscope />, color: 'bg-sky-500', sops: ["Monitor sterile zones.", "Inspect bed frames.", "Drain cleaning protocols.", "HEPA filtered waste."] },
+            { id: 'logistics', name: 'Logistics/WH', icon: <Truck />, color: 'bg-emerald-500', sops: ["Dock leveler sweeps.", "FIFO pallet rotation.", "10ft weed-free zone.", "Seal audits."] }
+        ];
+
+        const EXCLUSION_TIPS = [
+            { title: "The Dime Rule", desc: "Mice enter gaps > 6mm.", icon: <MapPin />, remedy: "Steel wool + sealant." },
+            { title: "Door Sweeps", desc: "Block light to block pests.", icon: <Shield />, remedy: "Nylon brush sweeps." },
+            { title: "Pipe Seals", desc: "Gaps are highways.", icon: <Box />, remedy: "Resistant foam." }
+        ];
+
+        const PEST_DATA = [
+            { category: "Rodents", name: "Norway Rat", risk: "Fire hazard; transmits Leptospirosis.", signs: "Capsule droppings, rub marks." },
+            { category: "Rodents", name: "House Mouse", risk: "Enters via 6mm gaps.", signs: "Shredded nests, black droppings." },
+            { category: "Crawling", name: "German Cockroach", risk: "Salmonella vector.", signs: "Fecal spotting, oily odor." },
+            { category: "Specialized", name: "Bed Bug", risk: "High liability; blood-feeder.", signs: "Blood spots, shed skins." }
+        ];
+
+        const QUIZ_QUESTIONS = [
+            { question: "What is the primary goal of IPM?", options: ["Chemical elimination", "Prevention & Exclusion", "Heavy Trapping", "Monitoring only"], correct: 1 },
+            { question: "How large is the 'BIN Air Gap' standard?", options: ["2 inches", "6 inches", "12 inches", "24 inches"], correct: 2 }
+        ];
+
+        // --- MAIN APP ---
+        function App() {
+            const [currentModule, setCurrentModule] = useState('dashboard');
+            const [progress, setProgress] = useState({ residential: false, commercial: false, exclusion: false, identification: false, quiz: false });
+            const [selectedCommercial, setSelectedCommercial] = useState(COMMERCIAL_INDUSTRIES[0]);
+            const [quizStep, setQuizStep] = useState(0);
+            const [score, setScore] = useState(0);
+            const [showResults, setShowResults] = useState(false);
+            const [searchTerm, setSearchTerm] = useState('');
+
+            const completeModule = (moduleId) => {
+                setProgress(prev => ({ ...prev, [moduleId]: true }));
+                setCurrentModule('dashboard');
+            };
+
+            const filteredPests = PEST_DATA.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+            return (
+                <div className="min-h-screen bg-white text-gray-900">
+                    <header className="bg-white/90 backdrop-blur-md border-b sticky top-0 z-50 h-20 flex items-center px-8 justify-between">
+                        <div onClick={() => setCurrentModule('dashboard')} className="cursor-pointer"><PDSLogo className="h-12 text-[#1A9AD6]" /></div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-[#1A9AD6]">Training Portal</div>
+                    </header>
+
+                    <main className="max-w-6xl mx-auto p-8">
+                        {currentModule === 'dashboard' && (
+                            <div className="space-y-8 animate-in fade-in duration-500">
+                                <div className="bg-sky-50 p-10 rounded-[2.5rem] border border-sky-100">
+                                    <h1 className="text-3xl font-black mb-2">Pest Awareness Training</h1>
+                                    <p className="text-gray-600 mb-6">Finalize your path to environmental safety.</p>
+                                    <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                                        <div className="bg-[#1A9AD6] h-full" style={{width: '20%'}}></div>
+                                    </div>
+                                </div>
+                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div onClick={() => setCurrentModule('residential')} className="p-8 border-2 rounded-[2rem] cursor-pointer hover:border-[#1A9AD6] transition-all">
+                                        <Home className="text-rose-500 mb-4" />
+                                        <h3 className="font-bold uppercase tracking-tight">Residential Hub</h3>
+                                    </div>
+                                    <div onClick={() => setCurrentModule('commercial')} className="p-8 border-2 rounded-[2rem] cursor-pointer hover:border-[#1A9AD6] transition-all">
+                                        <Building2 className="text-orange-500 mb-4" />
+                                        <h3 className="font-bold uppercase tracking-tight">Commercial Track</h3>
+                                    </div>
+                                    <div onClick={() => setCurrentModule('identification')} className="p-8 border-2 rounded-[2rem] cursor-pointer hover:border-[#1A9AD6] transition-all">
+                                        <Search className="text-emerald-500 mb-4" />
+                                        <h3 className="font-bold uppercase tracking-tight">Pest Index</h3>
+                                    </div>
+                                    <div onClick={() => setCurrentModule('quiz')} className="p-8 border-2 rounded-[2rem] cursor-pointer hover:border-[#1A9AD6] transition-all">
+                                        <ClipboardCheck className="text-indigo-500 mb-4" />
+                                        <h3 className="font-bold uppercase tracking-tight">Assessment</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {currentModule === 'residential' && (
+                            <div className="space-y-6">
+                                <h2 className="text-3xl font-black">Residential SOP</h2>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    {RESIDENTIAL_SOP.sops.map((s, i) => <div key={i} className="p-4 bg-rose-50 border rounded-xl font-medium">{s}</div>)}
+                                </div>
+                                <button onClick={() => completeModule('residential')} className="w-full py-4 bg-[#1A9AD6] text-white rounded-xl font-bold">FINISH MODULE</button>
+                            </div>
+                        )}
+
+                        {currentModule === 'identification' && (
+                            <div className="space-y-6">
+                                <input type="text" placeholder="Search pests..." className="w-full p-4 border-2 rounded-xl mb-4" onChange={e => setSearchTerm(e.target.value)} />
+                                {filteredPests.map((p, i) => (
+                                    <div key={i} className="p-6 border rounded-2xl flex gap-4">
+                                        <div className="text-[#1A9AD6]"><AlertTriangle /></div>
+                                        <div><h4 className="font-black uppercase">{p.name}</h4><p className="text-sm text-gray-500">{p.risk}</p></div>
+                                    </div>
+                                ))}
+                                <button onClick={() => completeModule('identification')} className="w-full py-4 bg-[#1A9AD6] text-white rounded-xl font-bold">FINISH MODULE</button>
+                            </div>
+                        )}
+
+                        {currentModule === 'quiz' && (
+                            <div className="max-w-xl mx-auto bg-white p-10 border-2 rounded-[2.5rem] shadow-xl">
+                                <h2 className="text-2xl font-black mb-6 uppercase tracking-tight">Knowledge Assessment</h2>
+                                <p className="mb-8 font-bold">{QUIZ_QUESTIONS[quizStep].question}</p>
+                                <div className="space-y-3">
+                                    {QUIZ_QUESTIONS[quizStep].options.map((o, i) => (
+                                        <button key={i} onClick={() => {if(quizStep+1 < QUIZ_QUESTIONS.length) setQuizStep(quizStep+1); else setShowResults(true);}} className="w-full p-4 border rounded-xl hover:bg-sky-50 text-left font-medium">{o}</button>
+                                    ))}
+                                </div>
+                                {showResults && <div className="mt-8 p-6 bg-emerald-50 text-emerald-700 font-bold rounded-xl text-center">Assessment Verified! Return to Dashboard.</div>}
+                                {showResults && <button onClick={() => completeModule('quiz')} className="w-full mt-4 py-4 bg-gray-900 text-white rounded-xl font-bold">RETURN TO DASHBOARD</button>}
+                            </div>
+                        )}
+                    </main>
+
+                    <footer className="mt-20 py-12 border-t text-center">
+                        <PDSLogo className="h-8 mx-auto grayscale opacity-40" />
+                        <p className="text-[10px] font-black uppercase text-gray-400 mt-4 tracking-widest">Environmental Safety Training</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
+
